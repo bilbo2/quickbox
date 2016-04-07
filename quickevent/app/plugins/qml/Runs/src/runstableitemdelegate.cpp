@@ -52,6 +52,23 @@ void RunsTableItemDelegate::paintBackground(QPainter *painter, const QStyleOptio
 			//qfInfo() << m_highlightedClassId << m_classInterval << isStartTimeHighlightVisible();
 			if(m_highlightedClassId > 0 && m_classInterval > 0 && isStartTimeHighlightVisible()) {
 				auto cd = tm->columnDefinition(index.column());
+				if(cd.matchesSqlId(QStringLiteral("ranking"))) {
+					QVariant rank_v = m->data(index, Qt::EditRole);
+					int rank = rank_v.value<int>();
+					if (rank==0) rank=99999;
+					QColor c;
+					if (rank<=100) {
+						c = QColor(0xee,0xcc,0xff);
+					} else if (rank<=300) {
+						c = QColor(0xcc,0xee,0xff);
+					} else {
+						c = QColor(0xee,0xee,0xdd);
+					}
+					if(c.isValid()) {
+						painter->fillRect(option.rect, c);
+						return;
+					}
+				}
 				if(cd.matchesSqlId(QStringLiteral("runs.startTimeMs"))) {
 					QVariant stime_v = m->data(index, Qt::EditRole);
 					quickevent::core::og::TimeMs stime = stime_v.value<quickevent::core::og::TimeMs>();
