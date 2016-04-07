@@ -46,6 +46,8 @@ QtObject {
 			.select2('competitors', 'lastName, firstName, registration, startNumber')
 			.select("COALESCE(competitors.lastName, '') || ' ' || COALESCE(competitors.firstName, '') AS competitorName")
 			.select2('runs', 'siId, startTimeMs')
+			.select2('competitors', 'ranking')
+			.select2('competitors', 'licence')
 			.from('competitors')
 			.joinRestricted("competitors.id", "runs.competitorId", "runs.stageId={{stage_id}} AND runs.isRunning", "INNER JOIN")
 			.where("competitors.classId={{class_id}}")
@@ -378,6 +380,8 @@ QtObject {
 					  ['th', qsTr("Start")],
 					  ['th', qsTr("Name")],
 					  ['th', qsTr("Registration")],
+					  ['th', qsTr("Rank")],
+					  ['th', qsTr("Lic")],
 					  ['th', qsTr("SI")]
 					];
 			table.push(tr);
@@ -388,6 +392,8 @@ QtObject {
 				tr.push(['td', OGTime.msecToString_mmss(tt2.value(j, 'startTimeMs'))]);
 				tr.push(['td', tt2.value(j, 'competitorName')]);
 				tr.push(['td', tt2.value(j, 'registration')]);
+				tr.push(['td', tt2.value(j, 'ranking')]);
+				tr.push(['td', tt2.value(j, 'licence')]);
 				tr.push(['td', tt2.value(j, 'runs.siId')]);
 				table.push(tr);
 			}
