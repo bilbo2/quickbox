@@ -19,6 +19,7 @@ public:
 
 	//QF_VARIANTMAP_FIELD(int, c, setC, ode)
 	//QF_VARIANTMAP_FIELD(QString, t, setT, ype)
+	QF_VARIANTMAP_FIELD(int, m, setM, inTimeS)
 	QF_VARIANTMAP_FIELD(double, l, setL, atitude)
 	QF_VARIANTMAP_FIELD(double, l, setL, ongitude)
 	QF_VARIANTMAP_FIELD(int, d, setD, istance)

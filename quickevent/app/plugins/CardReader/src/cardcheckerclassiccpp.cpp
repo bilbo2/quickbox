@@ -93,6 +93,8 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 	}
 
 	int read_punch_check_ix = 0;
+	int penalty_ms = 0;
+	int last_check_time_ms = checked_card.startTimeMs();
 	for(int j=0; j<course_codes.length(); j++) {
 		quickevent::core::CodeDef course_code(course_codes[j].toMap());
 		quickevent::core::si::CheckedPunch checked_punch = quickevent::core::si::CheckedPunch::fromCodeDef(course_code);
@@ -102,12 +104,22 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 			const quickevent::core::si::ReadPunch &read_punch = read_punches[k];
 			int code = course_code.value(QStringLiteral("code")).toInt();
 			int alt_code = course_code.value(QStringLiteral("altcode")).toInt();
+			int min_time_sec = course_code.value(QStringLiteral("mintimes")).toInt();
+			//int min_time_sec = course_code.minTimeS();
 			qfDebug() << j << k << "looking for:" << checked_punch.code() << "on card:" << read_punch.code() << "vs. code:" << code << "alt:" << alt_code;
 			//console.info("code:", JSON.stringify(course_code, null, 2));
 			if(read_punch.code() == code || read_punch.code() == alt_code) {
 				int read_punch_time_ms = read_punch.time() * 1000;
 				if(read_punch.msec())
 					read_punch_time_ms += read_punch.msec();
+				int diff_ms = read_punch_time_ms - last_check_time_ms;
+				if (diff_ms < 0)
+					diff_ms = 0;
+				last_check_time_ms = read_punch_time_ms;
+				if (diff_ms < min_time_sec * 1000) {
+					penalty_ms += min_time_sec * 1000 - diff_ms;
+				}
+				qfInfo() << j << k << "looking for:" << checked_punch.code() << " time[ms]:" << diff_ms << " penalty[ms]:" << penalty_ms << " min[s]: " << min_time_sec;
 				checked_punch.setStpTimeMs(msecIntervalAM(checked_card.stageStartTimeMs() + checked_card.startTimeMs(), read_punch_time_ms));
 				qfDebug() << j << "OK";
 				break;
@@ -151,6 +163,7 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 			lst << p;
 		checked_card.setPunches(lst);
 	}
+	checked_card.setExtraTimeMs(penalty_ms);
 	qfDebug() << "check result:" << checked_card.toString();
 	return checked_card;
 

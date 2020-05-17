@@ -53,19 +53,20 @@ void EditCourseCodesWidget::reload(int course_id)
 	loadAllCodes();
 	auto *m = m_courseCodesModel;
 	m->clear();
-	m->setHorizontalHeaderLabels(QStringList() << tr("Code"));
+	m->setHorizontalHeaderLabels(QStringList() << tr("Code") << tr("Min. time"));
 	qfs::QueryBuilder qb;
 	qb.select2("codes", "id, code, note")
-			//.select2("coursecodes", "position")
+			.select2("coursecodes", "minTimeS")
 			.from("coursecodes")
 			.joinRestricted("coursecodes.codeId", "codes.id", "coursecodes.courseId=" QF_IARG(m_courseId), qfs::QueryBuilder::INNER_JOIN)
 			.orderBy("coursecodes.position");
-	//qfInfo() << qb.toString();
+	// qfInfo() << qb.toString();
 	qfs::Query q;
 	q.exec(qb);
 	while(q.next()) {
 		int code_id = q.value(QStringLiteral("id")).toInt();
-		addCourseCode(code_id);
+		int min_time = q.value(QStringLiteral("minTimeS")).toInt();
+		addCourseCode(code_id, min_time);
 	}
 }
 
@@ -76,11 +77,13 @@ void EditCourseCodesWidget::save()
 		qfs::Transaction transaction;
 		qfs::Query q;
 		q.exec("DELETE FROM coursecodes WHERE courseId=" QF_IARG(m_courseId), qfc::Exception::Throw);
-		q.prepare("INSERT INTO coursecodes (courseId, position, codeId) VALUES (:courseId, :position, :codeId)", qfc::Exception::Throw);
+		q.prepare("INSERT INTO coursecodes (courseId, position, codeId, minTimeS) VALUES (:courseId, :position, :codeId, :minTime)", qfc::Exception::Throw);
 		for (int i = 0; i < m_courseCodesModel->rowCount(); ++i) {
 			q.bindValue(QStringLiteral(":position"), i + 1);
 			q.bindValue(QStringLiteral(":courseId"), m_courseId);
 			q.bindValue(QStringLiteral(":codeId"), m_courseCodesModel->item(i)->data().toInt());
+//TODO: minTimeS save properly
+			q.bindValue(QStringLiteral(":minTime"), m_courseCodesModel->item(i)->data().toInt());
 			q.exec(qfc::Exception::Throw);
 		}
 		transaction.commit();
@@ -115,6 +118,11 @@ void EditCourseCodesWidget::loadAllCodes()
 	q.exec(qb);
 	while(q.next()) {
 		auto caption = QString("%1 %2").arg(q.value(QStringLiteral("code")).toInt()).arg(q.value(QStringLiteral("note")).toString());
+
+//		auto minTime = q.value(QStringLiteral("minTimeS"));
+//		if (!minTime.isNull()) {
+//			caption+=minTimeCaption(minTime.toInt());
+//		}
 		int code_id = q.value(QStringLiteral("id")).toInt();
 		QStandardItem *it = new QStandardItem(caption);
 		it->setData(code_id);
@@ -122,7 +130,11 @@ void EditCourseCodesWidget::loadAllCodes()
 	}
 }
 
-void EditCourseCodesWidget::addCourseCode(int code_id)
+QString EditCourseCodesWidget::minTimeCaption(int minTime) {
+	return QString(" (min %1:%2)").arg(minTime / 60).arg(minTime % 60, 2, 10, QChar('0'));
+}
+
+void EditCourseCodesWidget::addCourseCode(int code_id, int min_time)
 {
 	for (int i = 0; i < m_allCodesModel->rowCount(); ++i) {
 		QStandardItem *it1 = m_allCodesModel->item(i);
@@ -130,8 +142,9 @@ void EditCourseCodesWidget::addCourseCode(int code_id)
 		if(id == code_id) {
 			QStandardItem *it2 = new QStandardItem(it1->text());
 			it2->setData(it1->data());
+			QStandardItem *mt = new QStandardItem(min_time==0 ? "" : QString::number(min_time));
 			//m_allCodesModel->removeRow(i);
-			m_courseCodesModel->appendRow(it2);
+			m_courseCodesModel->appendRow(QList<QStandardItem*>() << it2 << mt);
 			break;
 		}
 	}
@@ -146,7 +159,7 @@ void EditCourseCodesWidget::addSelectedCodesToCourse()
 		selected_codes << code_id;
 	}
 	for(auto code_id : selected_codes) {
-		addCourseCode(code_id);
+		addCourseCode(code_id, 0);
 	}
 }
 

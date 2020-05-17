@@ -89,7 +89,8 @@ Schema {
 				Field { name: 'id'; type: Serial { primaryKey: true } },
 				Field { name: 'courseId'; type: Int { } },
 				Field { name: 'position'; type: Int { } },
-				Field { name: 'codeId'; type: Int { } }
+				Field { name: 'codeId'; type: Int { } },
+				Field { name: 'minTimeS'; type: Int { } }
 			]
 			indexes: [
 				Index {fields: ['courseId']; references: ForeignKeyReference {table: 'courses'; fields: ['id']; } },

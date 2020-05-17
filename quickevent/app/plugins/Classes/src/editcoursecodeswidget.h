@@ -30,7 +30,9 @@ public:
 	Q_SIGNAL void courseCodesSaved();
 private:
 	void loadAllCodes();
-	void addCourseCode(int code_id);
+	QString minTimeCaption(int minTime);
+
+	void addCourseCode(int code_id, int min_time);
 	void addSelectedCodesToCourse();
 	void removeSelectedCodesFromCourse();
 

@@ -346,6 +346,18 @@ Report {
 				//vinset: 1
 				hinset: 1
 				textFn: function() {
+					var extra_info = bandCard.data("extraInfo");
+					//console.warn("missing_codes:", JSON.stringify(missing_codes, null, 2));
+					if(extra_info) {
+						return extra_info;
+					}
+					return "";
+				}
+			}
+			Para {
+				//vinset: 1
+				hinset: 1
+				textFn: function() {
 					var bad_check = bandCard.data("isBadCheck");
 					if(bad_check) {
 						return qsTr("BAD CHECK !!!");

@@ -28,7 +28,7 @@ int CheckedCard::timeMs() const
 	QVariant v = punches().value(punches().count()  -1);
 	if(v.isValid()) {
 		CheckedPunch p(v.toMap());
-		return p.stpTimeMs();
+		return p.stpTimeMs() + extraTimeMs();
 	}
 	return 0;
 }

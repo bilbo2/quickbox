@@ -370,6 +370,10 @@ QVariantMap ReceiptsPlugin::receiptTablesData(int card_id)
 			tt_row.setValue("distance", punch.distance());
 			tt.setRow(ix, tt_row);
 		}
+		if (checked_card.extraTimeMs()>0) {
+			// Non-zero penalty
+			tt.setValue("extraInfo", QString("Penalty: ")+QString::number(checked_card.extraTimeMs()/1000)+" sec");
+		}
 		{
 			QSet<int> correct_codes;
 			for (int i = 0; i < checked_card.punchCount(); ++i) {
@@ -386,7 +390,7 @@ QVariantMap ReceiptsPlugin::receiptTablesData(int card_id)
 		}
 		tt.setValue("currentStandings", current_standings);
 		tt.setValue("competitorsFinished", competitors_finished);
-		tt.setValue("timeMs", checked_card.timeMs());
+		tt.setValue("timeMs", checked_card.timeMs()+checked_card.extraTimeMs());
 		tt.setValue("isCardLent", is_card_lent);
 
 		qfDebug().noquote() << "card:\n" << tt.toString();

@@ -219,7 +219,7 @@ quickevent::core::CourseDef RunsPlugin::courseForCourseId(int course_id)
 	quickevent::core::CodeDef finish_code;
 	{
 		qfs::QueryBuilder qb;
-		qb.select2("coursecodes", "position")
+		qb.select2("coursecodes", "position, minTimeS")
 				.select2("codes", "*")
 				.from("coursecodes")
 				.join("coursecodes.codeId", "codes.id")
@@ -230,6 +230,7 @@ quickevent::core::CourseDef RunsPlugin::courseForCourseId(int course_id)
 		q.exec(qb.toString(), qf::core::Exception::Throw);
 		while (q.next()) {
 			quickevent::core::CodeDef cd(q.values());
+			qfInfo() << q.values();
 			quickevent::core::CodeDef::Type control_type = cd.type();
 			if(control_type == quickevent::core::CodeDef::Type::Start) {
 				start_code = cd;

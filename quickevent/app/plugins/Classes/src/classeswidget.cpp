@@ -111,6 +111,7 @@ public:
 		col_radio,
 		col_longitude,
 		col_latitude,
+		col_minTimeS,
 		col_COUNT
 	};
 
@@ -125,6 +126,7 @@ public:
 		setColumn(col_radio, ColumnDefinition("codes.radio", tr("R")).setToolTip(tr("Radio")));
 		setColumn(col_longitude, ColumnDefinition("codes.longitude", tr("Long")).setToolTip(tr("Longitude")));
 		setColumn(col_latitude, ColumnDefinition("codes.latitude", tr("Lat")).setToolTip(tr("Latitude")));
+		setColumn(col_minTimeS, ColumnDefinition("coursecodes.minTimeS", tr("Min")).setToolTip(tr("Minimal time in seconds")));
 	}
 
 	// QAbstractItemModel interface
@@ -395,7 +397,7 @@ void ClassesWidget::reloadCourseCodes()
 	{
 		qfs::QueryBuilder qb;
 		qb.select2("codes", "*")
-				.select2("coursecodes", "position")
+				.select2("coursecodes", "position, minTimeS")
 				.select("'' AS control_type")
 				.from("coursecodes")
 				.join("coursecodes.codeId", "codes.id")

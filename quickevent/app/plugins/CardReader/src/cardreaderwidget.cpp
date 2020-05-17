@@ -857,6 +857,7 @@ static int obStringTosec(const QString &time_str)
 static QList<int> codesForClassName(const QString &class_name, int stage_id)
 {
 	QList<int> ret;
+	QList<int> ret_times;
 	int course_id = 0;
 	{
 		qfs::QueryBuilder qb;
@@ -872,7 +873,7 @@ static QList<int> codesForClassName(const QString &class_name, int stage_id)
 	QF_ASSERT_EX(course_id > 0, QString("Cannot find course for class %1 and stage %2").arg(class_name).arg(stage_id));
 	{
 		qfs::QueryBuilder qb;
-		qb.select2("coursecodes", "position")
+		qb.select2("coursecodes", "position, minTimeS")
 				.select2("codes", "code")
 				.from("coursecodes")
 				.join("coursecodes.codeId", "codes.id")
@@ -882,8 +883,10 @@ static QList<int> codesForClassName(const QString &class_name, int stage_id)
 		q.exec(qb.toString(), qf::core::Exception::Throw);
 		while (q.next()) {
 			int code = q.value("code").toInt();
+			int min_time = q.value("minTimeS").toInt();
 			QF_ASSERT_EX(code > 0, "Code must be > 0");
 			ret << code;
+			ret_times << min_time;
 		}
 	}
 	QF_ASSERT_EX(ret.count() > 0, QString("Cannot load codes for class %1 and stage %2").arg(class_name).arg(stage_id));
