@@ -94,6 +94,7 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 
 	int read_punch_check_ix = 0;
 	int penalty_ms = 0;
+	int short_ms = 0;
 	int last_check_time_ms = checked_card.startTimeMs();
 	for(int j=0; j<course_codes.length(); j++) {
 		quickevent::core::CodeDef course_code(course_codes[j].toMap());
@@ -116,9 +117,16 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 				if (diff_ms < 0)
 					diff_ms = 0;
 				last_check_time_ms = read_punch_time_ms;
-				if (diff_ms < min_time_sec * 1000) {
-					penalty_ms += min_time_sec * 1000 - diff_ms;
+				if (min_time_sec>0) { // Minimal time per punch
+					if (diff_ms < min_time_sec * 1000) {
+						penalty_ms += min_time_sec * 1000 - diff_ms;
+					}
 				}
+				if (min_time_sec<0) { // Subtract time per punch ("bonus"/"free" time), but do not go below zero
+					int bonus_ms = std::min(diff_ms, - min_time_sec * 1000);
+					short_ms += bonus_ms;
+				}
+				read_punch_time_ms -= short_ms;
 				qfInfo() << j << k << "looking for:" << checked_punch.code() << " time[ms]:" << diff_ms << " penalty[ms]:" << penalty_ms << " min[s]: " << min_time_sec;
 				checked_punch.setStpTimeMs(msecIntervalAM(checked_card.stageStartTimeMs() + checked_card.startTimeMs(), read_punch_time_ms));
 				qfDebug() << j << "OK";
@@ -138,6 +146,10 @@ quickevent::core::si::CheckedCard CardCheckerClassicCpp::checkCard(const quickev
 		checked_punches << checked_punch;
 	}
 	checked_card.setMisPunch(error_mis_punch);
+
+	if (short_ms>0) {
+		checked_card.setFinishTimeMs(checked_card.finishTimeMs() - short_ms);
+	}
 
 	quickevent::core::si::CheckedPunch finish_punch;
 	if(!finish_code.isEmpty())
